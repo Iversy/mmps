@@ -40,22 +40,19 @@ class Matrix:
             raise AssertionError
         return self.solution_vector
 
-    # def _round(self, matrix, precision=15):
-    #     temp_matrix = deepcopy(matrix)
-    #     for i in range(self.n_row):
-    #         for j in range(self.n_row + 1):
-    #             round(temp_matrix[i][j], precision)
-    #     return temp_matrix
-
     def _forward_gauss(self) -> list[list[float | int]]:
         temp_matrix = deepcopy(self.data)
         for i in range(self.n_row):
             for k in range(i + 1, self.n_row):
                 multiplier = temp_matrix[k][i] / temp_matrix[i][i]
                 for j in range(self.n_row, i - 1, -1):
-                    temp_matrix[k][j] -= round(multiplier * temp_matrix[i][j], 15)
+                    temp_matrix[k][j] -= (
+                        multiplier * temp_matrix[i][j]
+                    )  # round(multiplier * temp_matrix[i][j], 15)
             for j in range(self.n_row, i - 1, -1):
-                temp_matrix[i][j] = round(temp_matrix[i][j] / temp_matrix[i][i], 15)
+                temp_matrix[i][j] = (
+                    temp_matrix[i][j] / temp_matrix[i][i]
+                )  # round(temp_matrix[i][j] / temp_matrix[i][i], 15)
 
         return temp_matrix
 
@@ -141,6 +138,11 @@ class Matrix:
 
 
 data = [[2.58, 2.93, 3.13, -6.66], [1.32, 1.55, 1.58, -3.58], [2.09, 2.25, 2.34, -5.01]]
+# matrix = [
+# [2.18, 2.44, 2.49, -4.34],
+# [2.17, 2.31, 2.49, -3.91],
+# [3.15, 3.22, 3.17, -5.27],
+# ]
 
 
 mat = Matrix(data)
