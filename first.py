@@ -12,6 +12,35 @@ class Matrix:
         self.forward_data = self._forward_gauss()
         self._backward_gauss()
 
+    @staticmethod
+    def _multiply_number(matrix, value) -> list[list[float | int]]:
+        return [
+            [matrix[i][j] * value for j in range(len(matrix[0]))]
+            for i in range(len(matrix))
+        ]
+
+    # Умножаем одинаковые матрицы...
+    @staticmethod
+    def _multiply_matrix(first_matrix, second_matrix) -> list[list[float | int]]:
+        size_first = len(first_matrix)
+        size_second = len(second_matrix)
+
+        if size_first != size_second:
+            raise ValueError
+
+        result = [[0 for _ in range(size_second)] for _ in range(size_first)]
+        for i in range(size_first):
+            for j in range(size_second):
+                for k in range(size_second):
+                    result[i][j] += first_matrix[i][k] * second_matrix[k][j]
+        return result
+
+    def __mul__(self, value) -> list[list[float | int]]:
+        if isinstance(value, int) or isinstance(value, float):
+            return self._multiply_number(self.data, value)
+        if isinstance(value, list):
+            return self._multiply_matrix(self.data, value)
+
     @property
     def forward_vector(self) -> list[float | int]:
         if not self.forward_data:
@@ -100,25 +129,23 @@ class Matrix:
 
     def inverse(self) -> list[list[float]]:
         n = self.n_row
-        augmented_matrix = [row + [0] * n for row in self.data]
-        for i in range(n):
-            augmented_matrix[i][i + n] = 1
+        augmented_matrix = [
+            row[:-1] + [1 if i == j else 0 for j in range(n)]
+            for i, row in enumerate(self.data)
+        ]
 
         for i in range(n):
-            for k in range(i + 1, n):
-                multiplier = augmented_matrix[k][i] / augmented_matrix[i][i]
-                for j in range(i, 2 * n):
-                    augmented_matrix[k][j] -= multiplier * augmented_matrix[i][j]
+            pivot = augmented_matrix[i][i]
+            if pivot == 0:
+                raise ValueError("Матрица вырождена и не имеет обратной.")
+            for j in range(2 * n):
+                augmented_matrix[i][j] /= pivot
 
-        for i in range(n - 1, -1, -1):
-            for j in range(i + 1, n):
-                augmented_matrix[i][n + j] -= (
-                    augmented_matrix[i][j]
-                    * augmented_matrix[j][n + j]
-                    / augmented_matrix[j][j]
-                )
-            for j in range(n, 2 * n):
-                augmented_matrix[i][j] /= augmented_matrix[i][i]
+            for k in range(n):
+                if k != i:
+                    multiplier = augmented_matrix[k][i]
+                    for j in range(2 * n):
+                        augmented_matrix[k][j] -= multiplier * augmented_matrix[i][j]
 
         return [row[n:] for row in augmented_matrix]
 
@@ -158,6 +185,8 @@ print("Вектор решения:", *mat.vector)
 print("Обратная матрица:")
 inverse_matrix = mat.inverse()
 print(*inverse_matrix, sep="\n")
+print("А*А^-1:")
+print(*(mat * inverse_matrix), sep="\n")
 print("Вектор невязки:", mat.residual_vector())
 print("Норма ||r||1:", mat.norm(mat.residual_vector(), 1))
 print("Норма ||r||∞:", mat.norm(mat.residual_vector(), float("inf")))
