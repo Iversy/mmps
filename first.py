@@ -106,7 +106,8 @@ class Matrix:
         b = [self.data[i][-1] for i in range(self.n_row)]
         return [b[i] - Ax[i] for i in range(self.n_row)]
 
-    def norm(self, vector: list[float], p: int) -> float:
+    @staticmethod
+    def norm(vector: list[float], p: int) -> float:
         if p == 1:
             return sum(abs(x) for x in vector)
         elif p == 2:
@@ -199,12 +200,21 @@ print("Норма ||r||1:", mat.norm(mat.residual_vector(), 1))
 print("Норма ||r||∞:", mat.norm(mat.residual_vector(), float("inf")))
 print("Норма ||r||2:", mat.norm(mat.residual_vector(), 2))
 print("Определитель:", mat.determinant())
-print("Число обусловленности:", mat.condition_number())
+print("Число обусловленности:", v := mat.condition_number())
 
 mat_b = Matrix(data_b)
 
 print("Вектор с погрешностью", *mat_b.vector)
 print(
     "Вектор относительных погрешностей",
-    *(abs(mat.vector[i] - el) for i, el in enumerate(mat_b.vector))
+    *(abs(mat.vector[i] - el) for i, el in enumerate(mat_b.vector)),
+)
+print("||Δx||/||x|| = ", x := mat.norm(mat_b.vector, 2) / mat.norm(mat.vector, 2))
+print(
+    "||Δx||/||x|| <= v(A)*(||Δb||/||b||) = ",
+    x <= v * mat.norm((b, b, b), 2) / mat.norm((i[-1] for i in mat.data), 2),
+)
+print(
+    "v(A)*(||Δb||/||b||)",
+    v * mat.norm((b, b, b), 2) / mat.norm((i[-1] for i in mat.data), 2),
 )
