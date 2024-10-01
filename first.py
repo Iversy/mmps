@@ -170,6 +170,10 @@ data = [[2.58, 2.93, 3.13, -6.66], [1.32, 1.55, 1.58, -3.58], [2.09, 2.25, 2.34,
 # [2.17, 2.31, 2.49, -3.91],
 # [3.15, 3.22, 3.17, -5.27],
 # ]
+b = 0.5
+data_b = deepcopy(data)
+for row in data_b:
+    row[-1] -= b
 
 
 mat = Matrix(data)
@@ -196,3 +200,11 @@ print("Норма ||r||∞:", mat.norm(mat.residual_vector(), float("inf")))
 print("Норма ||r||2:", mat.norm(mat.residual_vector(), 2))
 print("Определитель:", mat.determinant())
 print("Число обусловленности:", mat.condition_number())
+
+mat_b = Matrix(data_b)
+
+print("Вектор с погрешностью", *mat_b.vector)
+print(
+    "Вектор относительных погрешностей",
+    *(abs(mat.vector[i] - el) for i, el in enumerate(mat_b.vector))
+)
