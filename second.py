@@ -10,6 +10,7 @@ class Matrix:
         self.n_row = len(matrix)
         self.solution_vector = None
         self.forward_data = self._forward_gauss()
+        self.ax_b = self.convert()
         self._backward_gauss()
 
     @staticmethod
@@ -197,16 +198,17 @@ class Matrix:
 
     def seidel_method(self, eps=1e-8):
         n = self.n_row
-        matrix = deepcopy(self.data)
-        x = [0] * n
+        matrix = deepcopy(self.ax_b)
+        x = [matrix[i][-1] for i in range(n)]
         k = 0
         while True:
             x_old = x.copy()
             for i in range(n):
-                summa = sum([matrix[i][j] * x[j] for j in range(i)]) + sum(
-                    [matrix[i][j] * x[j] for j in range(i + 1, n)]
+                x[i] = (
+                    sum((matrix[i][j] * x[j] for j in range(i - 1)))
+                    + sum((matrix[i][j] * x_old[j] for j in range(i, n)))
+                    + matrix[i][-1]
                 )
-                x[i] = (matrix[i][-1] - summa) / matrix[i][i]
             if self.norm([x[j] - x_old[j] for j in range(n)], float("inf")) < eps:
                 break
             k += 1
@@ -214,14 +216,13 @@ class Matrix:
 
     def simple_iteration_method(self, eps=1e-8):
         n = self.n_row
-        matrix = deepcopy(self.data)
-        x = [0] * n
+        matrix = deepcopy(self.ax_b)
+        x = [matrix[i][-1] for i in range(n)]
         k = 0
         while True:
             x_old = x.copy()
             for i in range(n):
-                summa = sum([matrix[i][j] * x_old[j] for j in range(n) if j != i])
-                x[i] = (matrix[i][-1] - summa) / matrix[i][i]
+                x[i] = sum(matrix[i][j] * x_old[j] for j in range(n)) + matrix[i][-1]
             if self.norm([x[j] - x_old[j] for j in range(n)], float("inf")) < eps:
                 break
             k += 1
@@ -241,6 +242,14 @@ class Matrix:
         ]
         return self.norm(absolute_error, 1), self.norm(relative_error, 1)
 
+    def convert(self):
+        matrix = deepcopy(self.data)
+        for i in range(self.n_row):
+            matrix[i][-1] = self.data[i][-1] / self.data[i][i]
+            for j in range(self.n_row):
+                matrix[i][j] = 0 if i == j else -(self.data[i][j] / self.data[i][i])
+        return matrix
+
 
 data = [
     [1.7000, 0.0003, 0.0004, 0.0005, 0.6810],
@@ -251,26 +260,25 @@ data = [
 
 # data = [[2, 2, 10, 14], [10, 1, 1, 12], [2, 10, 1, 13]]
 
-# Ваш класс Matrix уже определен выше
-
-# Создаем объект Matrix с данными
-matrix = Matrix(data)
-for i in data:
+mat = Matrix(data)
+for i in mat.data:
     print(*i, sep=" ")
+print("Гаусс")
+print(mat.solution_vector)
 print("Сходимость (сходится или нет)")
-print(matrix.check_convergence())
+print(mat.check_convergence())
 for i in (1e-8, 1e-12, 1e-15):
     print("Epsilon = ", i)
     print("Метод простых итераций")
-    x, k = matrix.simple_iteration_method(i)
+    x, k = mat.simple_iteration_method(i)
     print(f"Сошлось за {k+1} итераций.")
     print(*x)
     print("Сверка Простых итераций с Гауссом")
-    print(matrix.compute_errors(x))
+    print(mat.compute_errors(x))
     print("Метод Зейделя")
-    x, k = matrix.seidel_method()
+    x, k = mat.seidel_method()
     print(f"Сошлось за {k+1} итераций.")
     print(*x)
     print("Сверка Зейделя с Гауссом")
-    print(matrix.compute_errors(x))
+    print(mat.compute_errors(x))
     print("-" * 50)
