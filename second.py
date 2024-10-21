@@ -183,11 +183,16 @@ class Matrix:
         )
         return norm_A * norm_A_inv
 
-    def ax_plus_b(self) -> (list[list[float | int]], list[float | int]):  # type: ignore
-
-        return
-
     def check_convergence(self) -> bool:
+        return (
+            self.norm(
+                [sum(self.ax_b[i]) - self.ax_b[i][-1] for i in range(self.n_row)],
+                float("inf"),
+            )
+            < 1
+        )
+
+    def check_dominance(self) -> bool:
         tmp = [
             [abs(self.data[i][j]) for j in range(self.n_row)] for i in range(self.n_row)
         ]
@@ -228,7 +233,7 @@ class Matrix:
             k += 1
         return x, k
 
-    def compute_errors(self, solution: list[float]) -> tuple[float, float]:
+    def compute_errors(self, solution: list[float], norm) -> tuple[float, float]:
         absolute_error = [
             self.solution_vector[i] - solution[i] for i in range(self.n_row)
         ]
@@ -240,7 +245,7 @@ class Matrix:
             )
             for i in range(self.n_row)
         ]
-        return self.norm(absolute_error, 1), self.norm(relative_error, 1)
+        return self.norm(absolute_error, norm), self.norm(relative_error, norm)
 
     def convert(self):
         matrix = deepcopy(self.data)
@@ -258,6 +263,14 @@ data = [
     [-0.0005, -0.0004, -0.0003, -1.0000, -1.0007],
 ]
 
+
+def print_all_errors(x, _matrix: Matrix):
+    norms = (1, 2, float("inf"))
+    for i in norms:
+        absolute, relative = _matrix.compute_errors(x, i)
+        print(f"Абсолютная = {absolute}, Относительная = {relative}, по норме {i}")
+
+
 # data = [[2, 2, 10, 14], [10, 1, 1, 12], [2, 10, 1, 13]]
 
 mat = Matrix(data)
@@ -274,11 +287,11 @@ for i in (1e-8, 1e-12, 1e-15):
     print(f"Сошлось за {k+1} итераций.")
     print(*x)
     print("Сверка Простых итераций с Гауссом")
-    print(mat.compute_errors(x))
+    print_all_errors(x, mat)
     print("Метод Зейделя")
     x, k = mat.seidel_method()
     print(f"Сошлось за {k+1} итераций.")
     print(*x)
     print("Сверка Зейделя с Гауссом")
-    print(mat.compute_errors(x))
+    print_all_errors(x, mat)
     print("-" * 50)
