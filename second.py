@@ -184,12 +184,9 @@ class Matrix:
         return norm_A * norm_A_inv
 
     def check_convergence(self) -> bool:
-        return (
-            self.norm(
-                [sum(self.ax_b[i]) - self.ax_b[i][-1] for i in range(self.n_row)],
-                float("inf"),
-            )
-            < 1
+        return self.norm(
+            [sum(self.ax_b[i]) - self.ax_b[i][-1] for i in range(self.n_row)],
+            float("inf"),
         )
 
     def check_dominance(self) -> bool:
@@ -210,7 +207,7 @@ class Matrix:
             x_old = x.copy()
             for i in range(n):
                 x[i] = (
-                    sum((matrix[i][j] * x[j] for j in range(i - 1)))
+                    sum((matrix[i][j] * x[j] for j in range(i)))
                     + sum((matrix[i][j] * x_old[j] for j in range(i, n)))
                     + matrix[i][-1]
                 )
@@ -257,10 +254,10 @@ class Matrix:
 
 
 data = [
-    [1.7000, 0.0003, 0.0004, 0.0005, 0.6810],
-    [0.0000, 0.8000, 0.0001, 0.0002, 0.4803],
-    [-0.0003, -0.0002, -0.1000, 0.0000, -0.0802],
-    [-0.0005, -0.0004, -0.0003, -1.0000, -1.0007],
+    [1.7000 / 100, 0.0003, 0.0004, 0.0005, 0.6810],
+    [0.0000, 0.8000 / 100, 0.0001, 0.0002, 0.4803],
+    [-0.0003, -0.0002, -0.1000 / 100, 0.0000, -0.0802],
+    [-0.0005, -0.0004, -0.0003, -1.0000 / 100, -1.0007],
 ]
 
 
@@ -289,7 +286,7 @@ for i in (1e-8, 1e-12, 1e-15):
     print("Сверка Простых итераций с Гауссом")
     print_all_errors(x, mat)
     print("Метод Зейделя")
-    x, k = mat.seidel_method()
+    x, k = mat.seidel_method(i)
     print(f"Сошлось за {k+1} итераций.")
     print(*x)
     print("Сверка Зейделя с Гауссом")
