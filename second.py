@@ -275,8 +275,11 @@ for i in mat.data:
     print(*i, sep=" ")
 print("Гаусс")
 print(mat.solution_vector)
+print("ax + b")
+for i in mat.ax_b:
+    print(*i, sep=" ")
 print("Сходимость (сходится или нет)")
-print(mat.check_convergence())
+print(asd := mat.check_convergence(), asd < 1)
 for i in (1e-8, 1e-12, 1e-15):
     print("Epsilon = ", i)
     print("Метод простых итераций")
